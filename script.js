@@ -20,17 +20,20 @@ const calApply = document.getElementById('cal-apply');
 const calHours = document.getElementById('cal-hours');
 const calMinutes = document.getElementById('cal-minutes');
 
+// Кнопки массового удаления
+const clearDoneBtn = document.getElementById('clear-done');
+const clearAllBtn = document.getElementById('clear-all');
+
 let todos = load();
 let currentFilter = 'all';
 let notifiedIds = new Set();
 
 let currentDate = new Date();
 let selectedDate = null;
-let soundInterval = null; // Для бесконечного звука
+let soundInterval = null;
 
 dateEl.textContent = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
 
-// Заполняем селекты времени
 function initTimeSelects() {
   for (let i = 0; i < 24; i++) {
     const opt = document.createElement('option');
@@ -147,7 +150,6 @@ function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(todos)); }
 function formatDate(dateString) { if (!dateString) return ''; return new Date(dateString).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
 function isOverdue(dateString, isDone) { if (!dateString || isDone) return false; return new Date(dateString).getTime() < new Date().getTime(); }
 
-// Уведомление с опциональной кнопкой "Остановить"
 function showToast(message, icon = '🔔', isAlarm = false) {
   const toast = document.createElement('div');
   toast.className = 'toast';
@@ -173,7 +175,6 @@ function showToast(message, icon = '🔔', isAlarm = false) {
   }
 }
 
-// Воспроизведение одного "динь"
 function playSingleBeep() {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -188,11 +189,10 @@ function playSingleBeep() {
   } catch (e) {}
 }
 
-// Циклическое воспроизведение
 function startAlarm() {
   playSingleBeep();
   if (soundInterval) clearInterval(soundInterval);
-  soundInterval = setInterval(playSingleBeep, 3000); // Каждые 3 секунды
+  soundInterval = setInterval(playSingleBeep, 3000);
 }
 
 function stopAlarm() {
@@ -208,13 +208,12 @@ function checkReminders() {
     if (todo.done || !todo.date) return;
     const taskTime = new Date(todo.date).getTime();
 
-    // Если время подошло (в пределах минуты) и мы еще не уведомляли
     if (taskTime <= now && taskTime > now - 60000 && !notifiedIds.has(todo.id)) {
       notifiedIds.add(todo.id);
       const msg = `Пора выполнить: "${todo.text}"`;
 
-      startAlarm(); // Запускаем бесконечный звук
-      showToast(msg, '⏰', true); // Показываем уведомление с кнопкой стоп
+      startAlarm();
+      showToast(msg, '⏰', true);
 
       if ("Notification" in window && Notification.permission === "granted") {
         new Notification("Напоминание", { body: msg, icon: "https://github.com/favicon.ico" });
@@ -270,6 +269,30 @@ function addTodo(text, date) {
 function toggleTodo(id) { const t = todos.find(x => x.id === id); if (t) { t.done = !t.done; save(); setTimeout(render, 150); } }
 function deleteTodo(id, el) { el.classList.add('removing'); setTimeout(() => { todos = todos.filter(t => t.id !== id); save(); render(); }, 250); }
 
+// --- Массовое удаление ---
+clearDoneBtn.addEventListener('click', () => {
+  const doneCount = todos.filter(t => t.done).length;
+  if (doneCount === 0) return;
+
+  if (confirm(`Удалить ${doneCount} выполненных задач?`)) {
+    todos = todos.filter(t => !t.done);
+    save();
+    render();
+    showToast(`Удалено выполненных: ${doneCount}`, "🗑️", false);
+  }
+});
+
+clearAllBtn.addEventListener('click', () => {
+  if (todos.length === 0) return;
+
+  if (confirm('Вы уверены, что хотите удалить ВСЕ задачи?')) {
+    todos = [];
+    save();
+    render();
+    showToast('Все задачи удалены', "🗑️", false);
+  }
+});
+
 form.addEventListener('submit', e => {
   e.preventDefault();
   addTodo(input.value, dateBtn.dataset.date || null);
@@ -281,8 +304,7 @@ filterBtns.forEach(btn => btn.addEventListener('click', () => {
   currentFilter = btn.dataset.filter; render();
 }));
 
-// Запуск
-initTimeSelects(); // Инициализация выпадающих списков
+initTimeSelects();
 renderCalendar();
 render();
 askNotificationPermission();
