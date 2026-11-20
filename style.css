@@ -68,7 +68,6 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: #1a202c; 
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
 }
 
-/* Кастомный выбор даты */
 .date-picker-wrapper { position: relative; }
 
 .date-btn {
@@ -106,7 +105,7 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: #1a202c; 
   animation: fadeIn 0.2s ease-out;
 }
 
-.custom-calendar.hidden { display: none; }
+.custom-calendar.hidden { display: none !important; }
 
 .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-weight: 700; font-size: 15px; color: #2d3748; }
 .cal-nav { background: none; border: none; font-size: 18px; cursor: pointer; color: #a0aec0; padding: 4px; transition: color 0.2s; }
@@ -133,7 +132,6 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: #1a202c; 
 
 .cal-day:hover { background: #edf2f7; }
 .cal-day.selected { background: #667eea; color: #fff; font-weight: 700; }
-.cal-day.other-month { color: #cbd5e0; }
 .cal-day.today { border: 2px solid #667eea; }
 
 .cal-time { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid #edf2f7; margin-bottom: 12px; font-size: 14px; font-weight: 600; color: #4a5568; }
@@ -178,7 +176,6 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: #1a202c; 
 }
 .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4); }
 
-/* Фильтры и задачи */
 .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .counter { font-size: 13px; color: #718096; font-weight: 600; }
 .filters { display: flex; gap: 4px; background: #edf2f7; padding: 4px; border-radius: 10px; }
