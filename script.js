@@ -26,8 +26,28 @@ let notifiedIds = new Set();
 
 let currentDate = new Date();
 let selectedDate = null;
+let soundInterval = null; // Для бесконечного звука
 
 dateEl.textContent = new Date().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
+
+// Заполняем селекты времени
+function initTimeSelects() {
+  for (let i = 0; i < 24; i++) {
+    const opt = document.createElement('option');
+    opt.value = String(i).padStart(2, '0');
+    opt.textContent = String(i).padStart(2, '0');
+    calHours.appendChild(opt);
+  }
+  calHours.value = '12';
+
+  for (let i = 0; i < 60; i += 5) {
+    const opt = document.createElement('option');
+    opt.value = String(i).padStart(2, '0');
+    opt.textContent = String(i).padStart(2, '0');
+    calMinutes.appendChild(opt);
+  }
+  calMinutes.value = '00';
+}
 
 function renderCalendar() {
   calDays.innerHTML = '';
@@ -96,12 +116,12 @@ nextMonthBtn.addEventListener('click', (e) => {
 calApply.addEventListener('click', (e) => {
   e.stopPropagation();
   if (!selectedDate) {
-    showToast("Сначала выберите день", "⚠️");
+    showToast("Сначала выберите день", "⚠️", false);
     return;
   }
 
-  const hours = String(calHours.value).padStart(2, '0');
-  const minutes = String(calMinutes.value).padStart(2, '0');
+  const hours = calHours.value;
+  const minutes = calMinutes.value;
   const finalDate = new Date(selectedDate);
   finalDate.setHours(parseInt(hours), parseInt(minutes), 0);
 
@@ -112,7 +132,7 @@ calApply.addEventListener('click', (e) => {
   dateBtn.classList.remove('active');
 
   dateBtn.dataset.date = finalDate.toISOString();
-  showToast(`Выбрано: ${formatDate(finalDate.toISOString())}`, "📅");
+  showToast(`Выбрано: ${formatDate(finalDate.toISOString())}`, "📅", false);
 });
 
 function resetDatePicker() {
@@ -127,30 +147,59 @@ function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(todos)); }
 function formatDate(dateString) { if (!dateString) return ''; return new Date(dateString).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
 function isOverdue(dateString, isDone) { if (!dateString || isDone) return false; return new Date(dateString).getTime() < new Date().getTime(); }
 
-function showToast(message, icon = '🔔') {
+// Уведомление с опциональной кнопкой "Остановить"
+function showToast(message, icon = '🔔', isAlarm = false) {
   const toast = document.createElement('div');
   toast.className = 'toast';
-  toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+
+  let content = `<div style="display:flex; align-items:center; gap:10px;"><span>${icon}</span> <span>${message}</span></div>`;
+  if (isAlarm) {
+    content += `<button class="toast-btn" id="stop-alarm-btn">Остановить</button>`;
+  }
+  toast.innerHTML = content;
   toastContainer.appendChild(toast);
-  setTimeout(() => { toast.classList.add('removing'); setTimeout(() => toast.remove(), 300); }, 4000);
+
+  if (isAlarm) {
+    document.getElementById('stop-alarm-btn').addEventListener('click', () => {
+      stopAlarm();
+      toast.classList.add('removing');
+      setTimeout(() => toast.remove(), 300);
+    });
+  } else {
+    setTimeout(() => {
+      toast.classList.add('removing');
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
 }
 
-function playNotificationSound() {
+// Воспроизведение одного "динь"
+function playSingleBeep() {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) return;
     const ctx = new AudioContext();
-    const osc1 = ctx.createOscillator(); const gain1 = ctx.createGain();
-    osc1.type = 'sine'; osc1.frequency.setValueAtTime(880, ctx.currentTime);
-    gain1.gain.setValueAtTime(0.3, ctx.currentTime); gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
-    osc1.connect(gain1); gain1.connect(ctx.destination); osc1.start(); osc1.stop(ctx.currentTime + 0.5);
-    setTimeout(() => {
-      const osc2 = ctx.createOscillator(); const gain2 = ctx.createGain();
-      osc2.type = 'sine'; osc2.frequency.setValueAtTime(1174.66, ctx.currentTime);
-      gain2.gain.setValueAtTime(0.3, ctx.currentTime); gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
-      osc2.connect(gain2); gain2.connect(ctx.destination); osc2.start(); osc2.stop(ctx.currentTime + 0.6);
-    }, 150);
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.5, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + 0.4);
   } catch (e) {}
+}
+
+// Циклическое воспроизведение
+function startAlarm() {
+  playSingleBeep();
+  if (soundInterval) clearInterval(soundInterval);
+  soundInterval = setInterval(playSingleBeep, 3000); // Каждые 3 секунды
+}
+
+function stopAlarm() {
+  if (soundInterval) {
+    clearInterval(soundInterval);
+    soundInterval = null;
+  }
 }
 
 function checkReminders() {
@@ -158,17 +207,20 @@ function checkReminders() {
   todos.forEach(todo => {
     if (todo.done || !todo.date) return;
     const taskTime = new Date(todo.date).getTime();
+
+    // Если время подошло (в пределах минуты) и мы еще не уведомляли
     if (taskTime <= now && taskTime > now - 60000 && !notifiedIds.has(todo.id)) {
       notifiedIds.add(todo.id);
       const msg = `Пора выполнить: "${todo.text}"`;
-      playNotificationSound(); showToast(msg, '⏰'); showNativeNotification("Напоминание", msg);
+
+      startAlarm(); // Запускаем бесконечный звук
+      showToast(msg, '⏰', true); // Показываем уведомление с кнопкой стоп
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        new Notification("Напоминание", { body: msg, icon: "https://github.com/favicon.ico" });
+      }
     }
   });
-}
-
-function showNativeNotification(title, body) {
-  if (!("Notification" in window)) return;
-  if (Notification.permission === "granted") new Notification(title, { body: body, icon: "https://github.com/favicon.ico" });
 }
 
 function askNotificationPermission() {
@@ -179,7 +231,7 @@ function askNotificationPermission() {
     banner.innerHTML = `<span>Разрешить уведомления?</span><button id="allow-notifications">Разрешить</button>`;
     document.querySelector('.app').insertBefore(banner, document.querySelector('.todo-form'));
     document.getElementById('allow-notifications').addEventListener('click', () => {
-      Notification.requestPermission().then(p => { if (p === "granted") { showToast("Уведомления включены", "✅"); playNotificationSound(); } banner.classList.add('hidden'); });
+      Notification.requestPermission().then(p => { if (p === "granted") { showToast("Уведомления включены", "✅", false); playSingleBeep(); } banner.classList.add('hidden'); });
     });
   }
 }
@@ -212,7 +264,7 @@ function addTodo(text, date) {
   if (!text.trim()) return;
   todos.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text: text.trim(), date: date || null, done: false });
   save(); render();
-  if (date) showToast(`Напоминание на ${formatDate(date)}`, "⏰");
+  if (date) showToast(`Напоминание на ${formatDate(date)}`, "⏰", false);
 }
 
 function toggleTodo(id) { const t = todos.find(x => x.id === id); if (t) { t.done = !t.done; save(); setTimeout(render, 150); } }
@@ -229,5 +281,10 @@ filterBtns.forEach(btn => btn.addEventListener('click', () => {
   currentFilter = btn.dataset.filter; render();
 }));
 
-renderCalendar(); render(); askNotificationPermission();
-setInterval(checkReminders, 10000); setInterval(render, 60000);
+// Запуск
+initTimeSelects(); // Инициализация выпадающих списков
+renderCalendar();
+render();
+askNotificationPermission();
+setInterval(checkReminders, 10000);
+setInterval(render, 60000);
