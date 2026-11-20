@@ -20,7 +20,6 @@ const calApply = document.getElementById('cal-apply');
 const calHours = document.getElementById('cal-hours');
 const calMinutes = document.getElementById('cal-minutes');
 
-// Кнопки массового удаления
 const clearDoneBtn = document.getElementById('clear-done');
 const clearAllBtn = document.getElementById('clear-all');
 
@@ -145,10 +144,28 @@ function resetDatePicker() {
   selectedDate = null;
 }
 
-function load() { try { const raw = localStorage.getItem(STORAGE_KEY); return raw ? JSON.parse(raw) : []; } catch { return []; } }
-function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(todos)); }
-function formatDate(dateString) { if (!dateString) return ''; return new Date(dateString).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); }
-function isOverdue(dateString, isDone) { if (!dateString || isDone) return false; return new Date(dateString).getTime() < new Date().getTime(); }
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
+}
+
+function formatDate(dateString) {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function isOverdue(dateString, isDone) {
+  if (!dateString || isDone) return false;
+  return new Date(dateString).getTime() < new Date().getTime();
+}
 
 function showToast(message, icon = '🔔', isAlarm = false) {
   const toast = document.createElement('div');
@@ -230,7 +247,13 @@ function askNotificationPermission() {
     banner.innerHTML = `<span>Разрешить уведомления?</span><button id="allow-notifications">Разрешить</button>`;
     document.querySelector('.app').insertBefore(banner, document.querySelector('.todo-form'));
     document.getElementById('allow-notifications').addEventListener('click', () => {
-      Notification.requestPermission().then(p => { if (p === "granted") { showToast("Уведомления включены", "✅", false); playSingleBeep(); } banner.classList.add('hidden'); });
+      Notification.requestPermission().then(p => {
+        if (p === "granted") {
+          showToast("Уведомления включены", "✅", false);
+          playSingleBeep();
+        }
+        banner.classList.add('hidden');
+      });
     });
   }
 }
@@ -242,19 +265,41 @@ function render() {
   if (filtered.length === 0) {
     emptyHint.classList.remove('hidden');
     emptyHint.textContent = todos.length > 0 ? (currentFilter === 'active' ? "Все выполнено! 🎉" : "Пока нет выполненных") : "Задач пока нет — добавьте первую 👆";
-  } else emptyHint.classList.add('hidden');
+  } else {
+    emptyHint.classList.add('hidden');
+  }
 
   filtered.forEach(todo => {
     const li = document.createElement('li');
     li.className = 'todo-item' + (todo.done ? ' done' : '') + (isOverdue(todo.date, todo.done) ? ' overdue' : '');
 
-    const checkbox = document.createElement('input'); checkbox.type = 'checkbox'; checkbox.checked = todo.done; checkbox.addEventListener('change', () => toggleTodo(todo.id));
-    const contentDiv = document.createElement('div'); contentDiv.className = 'todo-content';
-    const span = document.createElement('span'); span.className = 'text'; span.textContent = todo.text; contentDiv.appendChild(span);
-    if (todo.date) { const badge = document.createElement('span'); badge.className = 'todo-date-badge'; badge.innerHTML = `⏰ ${formatDate(todo.date)}`; contentDiv.appendChild(badge); }
-    const del = document.createElement('button'); del.className = 'delete'; del.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`; del.addEventListener('click', () => deleteTodo(todo.id, li));
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = todo.done;
+    checkbox.addEventListener('change', () => toggleTodo(todo.id));
 
-    li.append(checkbox, contentDiv, del); list.appendChild(li);
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'todo-content';
+
+    const span = document.createElement('span');
+    span.className = 'text';
+    span.textContent = todo.text;
+    contentDiv.appendChild(span);
+
+    if (todo.date) {
+      const badge = document.createElement('span');
+      badge.className = 'todo-date-badge';
+      badge.innerHTML = `⏰ ${formatDate(todo.date)}`;
+      contentDiv.appendChild(badge);
+    }
+
+    const del = document.createElement('button');
+    del.className = 'delete';
+    del.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+    del.addEventListener('click', () => deleteTodo(todo.id, li));
+
+    li.append(checkbox, contentDiv, del);
+    list.appendChild(li);
   });
   counter.textContent = `${todos.filter(t => t.done).length} из ${todos.length} выполнено`;
 }
@@ -262,14 +307,29 @@ function render() {
 function addTodo(text, date) {
   if (!text.trim()) return;
   todos.push({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), text: text.trim(), date: date || null, done: false });
-  save(); render();
+  save();
+  render();
   if (date) showToast(`Напоминание на ${formatDate(date)}`, "⏰", false);
 }
 
-function toggleTodo(id) { const t = todos.find(x => x.id === id); if (t) { t.done = !t.done; save(); setTimeout(render, 150); } }
-function deleteTodo(id, el) { el.classList.add('removing'); setTimeout(() => { todos = todos.filter(t => t.id !== id); save(); render(); }, 250); }
+function toggleTodo(id) {
+  const t = todos.find(x => x.id === id);
+  if (t) {
+    t.done = !t.done;
+    save();
+    setTimeout(render, 150);
+  }
+}
 
-// --- Массовое удаление ---
+function deleteTodo(id, el) {
+  el.classList.add('removing');
+  setTimeout(() => {
+    todos = todos.filter(t => t.id !== id);
+    save();
+    render();
+  }, 250);
+}
+
 clearDoneBtn.addEventListener('click', () => {
   const doneCount = todos.filter(t => t.done).length;
   if (doneCount === 0) return;
@@ -296,12 +356,16 @@ clearAllBtn.addEventListener('click', () => {
 form.addEventListener('submit', e => {
   e.preventDefault();
   addTodo(input.value, dateBtn.dataset.date || null);
-  input.value = ''; resetDatePicker(); input.focus();
+  input.value = '';
+  resetDatePicker();
+  input.focus();
 });
 
 filterBtns.forEach(btn => btn.addEventListener('click', () => {
-  filterBtns.forEach(b => b.classList.remove('active')); btn.classList.add('active');
-  currentFilter = btn.dataset.filter; render();
+  filterBtns.forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = btn.dataset.filter;
+  render();
 }));
 
 initTimeSelects();
