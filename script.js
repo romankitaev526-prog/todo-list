@@ -17,8 +17,6 @@ const calMonthYear = document.getElementById('cal-month-year');
 const calDays = document.getElementById('cal-days');
 const prevMonthBtn = document.getElementById('prev-month');
 const nextMonthBtn = document.getElementById('next-month');
-const quickTodayBtn = document.getElementById('quick-today');
-const quickTomorrowBtn = document.getElementById('quick-tomorrow');
 const calApply = document.getElementById('cal-apply');
 const calHours = document.getElementById('cal-hours');
 const calMinutes = document.getElementById('cal-minutes');
@@ -34,6 +32,46 @@ let selectedDate = null;
 const today = new Date();
 dateEl.textContent = today.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
 
+// --- Звуковое уведомление (Web Audio API) ---
+function playNotificationSound() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+
+    const ctx = new AudioContext();
+
+    // Первый тон
+    const osc1 = ctx.createOscillator();
+    const gain1 = ctx.createGain();
+    osc1.type = 'sine';
+    osc1.frequency.setValueAtTime(880, ctx.currentTime); // Нота A5
+    gain1.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain1.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+
+    osc1.connect(gain1);
+    gain1.connect(ctx.destination);
+    osc1.start();
+    osc1.stop(ctx.currentTime + 0.5);
+
+    // Второй тон (чуть позже и выше)
+    setTimeout(() => {
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1174.66, ctx.currentTime); // Нота D6
+      gain2.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.6);
+
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start();
+      osc2.stop(ctx.currentTime + 0.6);
+    }, 150);
+  } catch (e) {
+    console.error("Не удалось воспроизвести звук", e);
+  }
+}
+
 // --- Логика Календаря ---
 function renderCalendar() {
   calDays.innerHTML = '';
@@ -48,13 +86,11 @@ function renderCalendar() {
 
   let startDay = firstDay === 0 ? 6 : firstDay - 1;
 
-  // Пустые ячейки в начале
   for (let i = 0; i < startDay; i++) {
     const emptyDiv = document.createElement('div');
     calDays.appendChild(emptyDiv);
   }
 
-  // Дни месяца
   for (let i = 1; i <= daysInMonth; i++) {
     const dayBtn = document.createElement('button');
     dayBtn.type = 'button';
@@ -81,7 +117,6 @@ function renderCalendar() {
   }
 }
 
-// Открытие/закрытие календаря
 dateBtn.addEventListener('click', (e) => {
   e.stopPropagation();
   customCalendar.classList.toggle('hidden');
@@ -91,7 +126,6 @@ dateBtn.addEventListener('click', (e) => {
   }
 });
 
-// Закрытие при клике вне календаря
 document.addEventListener('click', (e) => {
   if (!document.getElementById('date-picker-wrapper').contains(e.target)) {
     customCalendar.classList.add('hidden');
@@ -109,19 +143,6 @@ nextMonthBtn.addEventListener('click', () => {
   renderCalendar();
 });
 
-quickTodayBtn.addEventListener('click', () => {
-  selectedDate = new Date();
-  renderCalendar();
-});
-
-quickTomorrowBtn.addEventListener('click', () => {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  selectedDate = tomorrow;
-  renderCalendar();
-});
-
-// Применение даты
 calApply.addEventListener('click', () => {
   if (!selectedDate) {
     showToast("Выберите дату в календаре", "⚠️");
@@ -192,9 +213,15 @@ function checkReminders() {
   todos.forEach(todo => {
     if (todo.done || !todo.date) return;
     const taskTime = new Date(todo.date).getTime();
+    // Если время пришло (в пределах последней минуты) и мы еще не уведомляли
     if (taskTime <= now && taskTime > now - 60000 && !notifiedIds.has(todo.id)) {
       notifiedIds.add(todo.id);
       const msg = `Пора выполнить: "${todo.text}"`;
+
+      // Воспроизводим звук
+      playNotificationSound();
+
+      // Показываем визуальные уведомления
       showToast(msg, '⏰');
       showNativeNotification("Напоминание о задаче", msg);
     }
@@ -210,7 +237,10 @@ function askNotificationPermission() {
     document.querySelector('.app').insertBefore(banner, document.querySelector('.todo-form'));
     document.getElementById('allow-notifications').addEventListener('click', () => {
       Notification.requestPermission().then(permission => {
-        if (permission === "granted") showToast("Уведомления включены.", "✅");
+        if (permission === "granted") {
+          showToast("Уведомления включены.", "✅");
+          playNotificationSound(); // Проигрываем звук для проверки
+        }
         banner.classList.add('hidden');
       });
     });
@@ -331,5 +361,8 @@ filterBtns.forEach(btn => {
 renderCalendar();
 render();
 askNotificationPermission();
+
+// Проверяем напоминания каждые 10 секунд (для тестов)
 setInterval(checkReminders, 10000);
+// Обновляем интерфейс раз в минуту
 setInterval(render, 60000);

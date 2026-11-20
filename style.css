@@ -34,7 +34,6 @@ body {
   padding: 32px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.8);
   animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  /* Убрали max-height и overflow-y, чтобы ничего не обрезалось */
 }
 
 header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
@@ -103,7 +102,7 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: #1a202c; 
   padding: 16px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.15);
   border: 1px solid #edf2f7;
-  z-index: 1000; /* Подняли слой, чтобы календарь был поверх всего */
+  z-index: 1000;
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -143,11 +142,25 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: #1a202c; 
 .time-input input { width: 36px; border: none; background: transparent; text-align: center; font-family: inherit; font-size: 14px; font-weight: 600; color: #2d3748; outline: none; }
 .time-input input::-webkit-outer-spin-button, .time-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 
-.cal-actions { display: flex; gap: 8px; }
-.cal-quick { flex: 1; padding: 8px; border: none; background: #edf2f7; color: #4a5568; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; }
-.cal-quick:hover { background: #e2e8f0; }
-.cal-apply { flex: 1.5; padding: 8px; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: inherit; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); }
-.cal-apply:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4); }
+.cal-actions { display: flex; margin-top: 16px; }
+
+.cal-apply {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.cal-apply:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5); }
+.cal-apply:active { transform: translateY(0); }
 
 .submit-btn {
   display: flex;
