@@ -16,7 +16,6 @@ body {
   overflow: hidden;
 }
 
-/* Красивый градиентный фон */
 .bg-gradient {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -26,7 +25,7 @@ body {
 
 .app {
   width: 100%;
-  max-width: 560px;
+  max-width: 620px;
   background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -44,27 +43,19 @@ header {
   margin-bottom: 24px;
 }
 
-h1 {
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-  color: #1a202c;
-}
-
-.date {
-  font-size: 13px;
-  color: #718096;
-  font-weight: 600;
-}
+h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: #1a202c; }
+.date { font-size: 13px; color: #718096; font-weight: 600; }
 
 .todo-form {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 20px;
+  flex-wrap: wrap; /* Чтобы на телефонах переносилось */
 }
 
-.todo-form input {
+.todo-form input[type="text"] {
   flex: 1;
+  min-width: 200px;
   padding: 14px 16px;
   border: 2px solid transparent;
   background: #f7fafc;
@@ -76,10 +67,28 @@ h1 {
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
 }
 
-.todo-form input:focus {
+.todo-form input[type="text"]:focus {
   background: #fff;
   border-color: #667eea;
   box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+}
+
+.date-input {
+  padding: 12px 14px;
+  border: 2px solid transparent;
+  background: #f7fafc;
+  border-radius: 14px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  color: #4a5568;
+  transition: all 0.3s;
+  cursor: pointer;
+}
+
+.date-input:focus {
+  background: #fff;
+  border-color: #667eea;
 }
 
 .todo-form button {
@@ -97,14 +106,8 @@ h1 {
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.todo-form button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
-}
-
-.todo-form button:active {
-  transform: translateY(0);
-}
+.todo-form button:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4); }
+.todo-form button:active { transform: translateY(0); }
 
 .controls {
   display: flex;
@@ -115,11 +118,7 @@ h1 {
   gap: 12px;
 }
 
-.counter {
-  font-size: 13px;
-  color: #718096;
-  font-weight: 600;
-}
+.counter { font-size: 13px; color: #718096; font-weight: 600; }
 
 .filters {
   display: flex;
@@ -142,22 +141,10 @@ h1 {
   font-family: inherit;
 }
 
-.filter-btn:hover {
-  color: #1a202c;
-}
+.filter-btn:hover { color: #1a202c; }
+.filter-btn.active { background: #fff; color: #667eea; box-shadow: 0 2px 6px rgba(0,0,0,0.08); }
 
-.filter-btn.active {
-  background: #fff;
-  color: #667eea;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-.todo-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
+.todo-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
 
 .todo-item {
   display: flex;
@@ -170,22 +157,15 @@ h1 {
   animation: fadeIn 0.3s ease-out;
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
   border: 1px solid #edf2f7;
+  flex-wrap: wrap;
 }
 
-.todo-item:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  transform: translateY(-1px);
-}
+.todo-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.06); transform: translateY(-1px); }
+.todo-item.removing { animation: fadeOut 0.25s ease-in forwards; }
 
-.todo-item.removing {
-  animation: fadeOut 0.25s ease-in forwards;
-}
-
-/* Красивая кастомная галочка */
 .todo-item input[type="checkbox"] {
   appearance: none;
-  width: 22px;
-  height: 22px;
+  width: 22px; height: 22px;
   border: 2px solid #cbd5e0;
   border-radius: 6px;
   cursor: pointer;
@@ -194,15 +174,8 @@ h1 {
   flex-shrink: 0;
 }
 
-.todo-item input[type="checkbox"]:hover {
-  border-color: #667eea;
-}
-
-.todo-item input[type="checkbox"]:checked {
-  background: #667eea;
-  border-color: #667eea;
-}
-
+.todo-item input[type="checkbox"]:hover { border-color: #667eea; }
+.todo-item input[type="checkbox"]:checked { background: #667eea; border-color: #667eea; }
 .todo-item input[type="checkbox"]:checked::after {
   content: '';
   position: absolute;
@@ -213,9 +186,15 @@ h1 {
   transform: rotate(45deg);
 }
 
-/* Анимация зачеркивания, которая не вылезает за текст */
-.todo-item .text {
+.todo-content {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 150px;
+}
+
+.todo-item .text {
   font-size: 15px;
   font-weight: 500;
   color: #2d3748;
@@ -228,21 +207,29 @@ h1 {
 .todo-item .text::after {
   content: '';
   position: absolute;
-  left: 0;
-  top: 50%;
-  width: 0;
-  height: 2px;
+  left: 0; top: 50%;
+  width: 0; height: 2px;
   background: #a0aec0;
   transition: width 0.3s ease;
 }
 
-.todo-item.done .text {
-  color: #a0aec0;
-}
+.todo-item.done .text { color: #a0aec0; }
+.todo-item.done .text::after { width: 100%; }
 
-.todo-item.done .text::after {
-  width: 100%;
+/* Стили для времени */
+.todo-date-badge {
+  font-size: 12px;
+  color: #667eea;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
+.todo-item.done .todo-date-badge { color: #a0aec0; text-decoration: line-through; }
+
+/* Просроченные задачи */
+.todo-item.overdue { border-color: #fc8181; background: #fff5f5; }
+.todo-item.overdue .todo-date-badge { color: #e53e3e; animation: pulse 2s infinite; }
 
 .todo-item .delete {
   background: transparent;
@@ -255,37 +242,16 @@ h1 {
   transition: all 0.2s;
 }
 
-.todo-item .delete:hover {
-  color: #e53e3e;
-  background: #fff5f5;
-}
+.todo-item .delete:hover { color: #e53e3e; background: #fff5f5; }
 
 .empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 40px 0;
-  color: #a0aec0;
-  font-size: 14px;
-  font-weight: 500;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; padding: 40px 0; color: #a0aec0; font-size: 14px; font-weight: 500;
 }
 
-.empty.hidden {
-  display: none;
-}
+.empty.hidden { display: none; }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes fadeOut {
-  to { opacity: 0; transform: scale(0.95); }
-}
+@keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes fadeOut { to { opacity: 0; transform: scale(0.95); } }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }

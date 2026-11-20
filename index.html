@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="bg-gradient"></div> <!-- Красивый фон -->
+  <div class="bg-gradient"></div>
 
   <main class="app">
     <header>
@@ -18,8 +18,10 @@
       <p id="current-date" class="date"></p>
     </header>
 
+    <!-- Форма добавления -->
     <form id="todo-form" class="todo-form">
       <input id="todo-input" type="text" placeholder="Что нужно сделать?" autocomplete="off" maxlength="200">
+      <input id="todo-date" type="datetime-local" class="date-input" title="Установить дату и время">
       <button type="submit" title="Добавить">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
       </button>
