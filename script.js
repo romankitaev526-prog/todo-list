@@ -8,11 +8,13 @@ const counter = document.getElementById('counter');
 const emptyHint = document.getElementById('empty');
 const dateEl = document.getElementById('current-date');
 const filterBtns = document.querySelectorAll('.filter-btn');
+const toastContainer = document.getElementById('toast-container');
 
 let todos = load();
 let currentFilter = 'all';
+let notifiedIds = new Set();
 
-// Текущая дата в шапке
+// --- Вспомогательные функции для дат ---
 const today = new Date();
 dateEl.textContent = today.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', weekday: 'long' });
 
@@ -29,19 +31,79 @@ function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
 }
 
-// Форматирование даты для красивого вывода
 function formatDate(dateString) {
   if (!dateString) return '';
   const date = new Date(dateString);
   return date.toLocaleString('ru-RU', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
 
-// Проверка, просрочена ли задача
 function isOverdue(dateString, isDone) {
   if (!dateString || isDone) return false;
   return new Date(dateString).getTime() < new Date().getTime();
 }
 
+// --- Уведомления ---
+function showToast(message, icon = '🔔') {
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `<span>${icon}</span> <span>${message}</span>`;
+  toastContainer.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add('removing');
+    setTimeout(() => toast.remove(), 300);
+  }, 4000);
+}
+
+function showNativeNotification(title, body) {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted") {
+    new Notification(title, { body: body, icon: "https://github.com/favicon.ico" });
+  }
+}
+
+function checkReminders() {
+  const now = new Date().getTime();
+
+  todos.forEach(todo => {
+    if (todo.done || !todo.date) return;
+
+    const taskTime = new Date(todo.date).getTime();
+    // Если время пришло (с погрешностью в 1 минуту) и мы еще не уведомляли
+    if (taskTime <= now && taskTime > now - 60000 && !notifiedIds.has(todo.id)) {
+      notifiedIds.add(todo.id);
+
+      const msg = `Пора выполнить: "${todo.text}"`;
+      showToast(msg, '⏰');
+      showNativeNotification("Напоминание о задаче", msg);
+    }
+  });
+}
+
+function askNotificationPermission() {
+  if (!("Notification" in window)) return;
+
+  if (Notification.permission === "default") {
+    const banner = document.createElement('div');
+    banner.className = 'notify-banner';
+    banner.innerHTML = `
+      <span>Разрешить браузеру присылать напоминания?</span>
+      <button id="allow-notifications">Разрешить</button>
+    `;
+    document.querySelector('.app').insertBefore(banner, document.querySelector('.todo-form'));
+
+    document.getElementById('allow-notifications').addEventListener('click', () => {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          showToast("Отлично! Уведомления включены.", "✅");
+        }
+        banner.classList.add('hidden');
+      });
+    });
+  }
+}
+
+// --- Основной рендер ---
 function render() {
   list.innerHTML = '';
 
@@ -70,13 +132,11 @@ function render() {
     li.className = 'todo-item' + (todo.done ? ' done' : '') + (overdue ? ' overdue' : '');
     li.dataset.id = todo.id;
 
-    // Чекбокс
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
     checkbox.checked = todo.done;
     checkbox.addEventListener('change', () => toggleTodo(todo.id));
 
-    // Блок с текстом и датой
     const contentDiv = document.createElement('div');
     contentDiv.className = 'todo-content';
 
@@ -85,7 +145,6 @@ function render() {
     span.textContent = todo.text;
     contentDiv.appendChild(span);
 
-    // Если есть дата - показываем плашку
     if (todo.date) {
       const dateBadge = document.createElement('span');
       dateBadge.className = 'todo-date-badge';
@@ -93,7 +152,6 @@ function render() {
       contentDiv.appendChild(dateBadge);
     }
 
-    // Кнопка удаления
     const del = document.createElement('button');
     del.className = 'delete';
     del.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
@@ -120,6 +178,10 @@ function addTodo(text, date) {
 
   save();
   render();
+
+  if (date) {
+    showToast(`Напоминание установлено на ${formatDate(date)}`, "⏰");
+  }
 }
 
 function toggleTodo(id) {
@@ -139,11 +201,12 @@ function deleteTodo(id, element) {
   }, 250);
 }
 
+// --- События ---
 form.addEventListener('submit', e => {
   e.preventDefault();
   addTodo(input.value, dateInput.value);
   input.value = '';
-  dateInput.value = ''; // Очищаем дату после добавления
+  dateInput.value = '';
   input.focus();
 });
 
@@ -156,7 +219,11 @@ filterBtns.forEach(btn => {
   });
 });
 
+// --- Запуск ---
 render();
+askNotificationPermission();
 
-// Обновляем список каждую минуту, чтобы статус "просрочено" обновлялся сам
+// Проверка напоминаний каждые 10 секунд
+setInterval(checkReminders, 10000);
+// Обновление интерфейса (просроченные) каждую минуту
 setInterval(render, 60000);
