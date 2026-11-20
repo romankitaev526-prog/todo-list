@@ -46,7 +46,6 @@ function renderCalendar() {
   const firstDay = new Date(year, month, 1).getDay();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-  // Корректировка для Пн (0 = Пн, 6 = Вс)
   let startDay = firstDay === 0 ? 6 : firstDay - 1;
 
   // Пустые ячейки в начале
@@ -65,19 +64,17 @@ function renderCalendar() {
     const thisDate = new Date(year, month, i);
     const todayDate = new Date();
 
-    // Проверка "сегодня"
     if (thisDate.toDateString() === todayDate.toDateString()) {
       dayBtn.classList.add('today');
     }
 
-    // Проверка "выбрано"
     if (selectedDate && thisDate.toDateString() === selectedDate.toDateString()) {
       dayBtn.classList.add('selected');
     }
 
     dayBtn.addEventListener('click', () => {
       selectedDate = thisDate;
-      renderCalendar(); // Перерисовываем, чтобы обновить выделение
+      renderCalendar();
     });
 
     calDays.appendChild(dayBtn);
@@ -134,7 +131,6 @@ calApply.addEventListener('click', () => {
   const hours = String(calHours.value).padStart(2, '0');
   const minutes = String(calMinutes.value).padStart(2, '0');
 
-  // Формируем итоговую дату
   const finalDate = new Date(selectedDate);
   finalDate.setHours(parseInt(hours), parseInt(minutes), 0);
 
@@ -143,11 +139,9 @@ calApply.addEventListener('click', () => {
   customCalendar.classList.add('hidden');
   dateBtn.classList.remove('active');
 
-  // Сохраняем в скрытое поле (или прямо в переменную)
   dateBtn.dataset.date = finalDate.toISOString();
 });
 
-// Сброс даты при добавлении задачи
 function resetDatePicker() {
   dateBtnText.textContent = 'Когда?';
   dateBtn.classList.remove('has-date');
@@ -334,7 +328,6 @@ filterBtns.forEach(btn => {
   });
 });
 
-// Запуск
 renderCalendar();
 render();
 askNotificationPermission();

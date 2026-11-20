@@ -34,8 +34,7 @@ body {
   padding: 32px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.8);
   animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  max-height: 90vh;
-  overflow-y: auto;
+  /* Убрали max-height и overflow-y, чтобы ничего не обрезалось */
 }
 
 header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; }
@@ -104,7 +103,7 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: #1a202c; 
   padding: 16px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.15);
   border: 1px solid #edf2f7;
-  z-index: 100;
+  z-index: 1000; /* Подняли слой, чтобы календарь был поверх всего */
   animation: fadeIn 0.2s ease-out;
 }
 
@@ -166,7 +165,7 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: #1a202c; 
 }
 .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4); }
 
-/* Дальше идут стили из прошлого шага (фильтры, карточки, тосты) */
+/* Фильтры и задачи */
 .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .counter { font-size: 13px; color: #718096; font-weight: 600; }
 .filters { display: flex; gap: 4px; background: #edf2f7; padding: 4px; border-radius: 10px; }
@@ -193,11 +192,14 @@ h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; color: #1a202c; 
 .todo-item.overdue .todo-date-badge { color: #e53e3e; animation: pulse 2s infinite; }
 .todo-item .delete { background: transparent; border: none; color: #cbd5e0; cursor: pointer; padding: 8px; border-radius: 8px; line-height: 0; transition: all 0.2s; }
 .todo-item .delete:hover { color: #e53e3e; background: #fff5f5; }
+
 .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 40px 0; color: #a0aec0; font-size: 14px; font-weight: 500; }
 .empty.hidden { display: none; }
-.toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 1000; }
+
+.toast-container { position: fixed; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 2000; }
 .toast { background: #1a202c; color: #fff; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
 .toast.removing { animation: slideOutRight 0.3s ease-in forwards; }
+
 .notify-banner { display: flex; justify-content: space-between; align-items: center; background: #ebf8ff; border: 1px solid #bee3f8; padding: 10px 16px; border-radius: 12px; margin-bottom: 16px; font-size: 13px; color: #2b6cb0; font-weight: 600; }
 .notify-banner button { background: #3182ce; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 600; transition: background 0.2s; }
 .notify-banner button:hover { background: #2b6cb0; }
