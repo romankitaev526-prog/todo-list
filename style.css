@@ -18,6 +18,10 @@ body {
     overflow-y: auto;
 }
 
+.hidden {
+    display: none !important;
+}
+
 .bg-gradient {
     position: fixed;
     inset: 0;
@@ -358,6 +362,39 @@ h1 {
     border-color: #feb2b2;
 }
 
+/* Панель выбора задач */
+.selection-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex-basis: 100%;
+    width: 100%;
+    margin-top: 4px;
+}
+
+.select-all-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #718096;
+    cursor: pointer;
+}
+
+.select-all-label input {
+    width: 17px;
+    height: 17px;
+    accent-color: #667eea;
+    cursor: pointer;
+}
+
+#delete-selected:not(.hidden) {
+    display: flex;
+}
+
 .filters {
     display: flex;
     gap: 4px;
@@ -400,7 +437,7 @@ h1 {
 .todo-item {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     padding: 16px;
     background: #fff;
     border-radius: 16px;
@@ -421,16 +458,18 @@ h1 {
     animation: fadeOut 0.25s ease-in forwards;
 }
 
+/* Общий вид чекбоксов */
 .todo-item input[type="checkbox"] {
     appearance: none;
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     border: 2px solid #cbd5e0;
     border-radius: 6px;
     cursor: pointer;
     position: relative;
     transition: all 0.2s;
     flex-shrink: 0;
+    margin: 0;
 }
 
 .todo-item input[type="checkbox"]:hover {
@@ -445,13 +484,35 @@ h1 {
 .todo-item input[type="checkbox"]:checked::after {
     content: '';
     position: absolute;
-    top: 2px;
-    left: 6px;
+    top: 1px;
+    left: 5px;
     width: 5px;
     height: 10px;
     border: solid white;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
+}
+
+/* Подписи рядом с чекбоксами */
+.todo-check-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    font-size: 11px;
+    font-weight: 600;
+    color: #718096;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.todo-check-label:hover {
+    color: #667eea;
+}
+
+.todo-item input.select-todo {
+    width: 20px;
+    height: 20px;
 }
 
 .todo-content {
@@ -733,16 +794,25 @@ h1 {
     }
 
     .todo-item {
-        gap: 10px;
+        gap: 9px;
         padding: 12px;
     }
 
     .todo-content {
-        flex-basis: 0;
+        flex-basis: 100%;
+        order: 3;
+    }
+
+    .todo-item .delete {
+        margin-left: auto;
     }
 
     .controls {
         align-items: flex-start;
+    }
+
+    .selection-actions {
+        align-items: center;
     }
 
     .filters {
